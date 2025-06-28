@@ -229,9 +229,10 @@ class Plot_OldSync(with_metaclass(MetaParams, object)):
                         subinds=self.dplotsover[ind],
                         upinds=self.dplotsup[ind],
                         downinds=self.dplotsdown[ind])
-
+# only attach the cursor to axes that have actual plotted lines
+            real_axes = [ax for ax in self.pinf.daxis.values() if ax.lines]
             cursor = MultiCursor(
-                fig.canvas, list(self.pinf.daxis.values()),
+                fig.canvas, real_axes,
                 useblit=True,
                 horizOn=True, vertOn=True,
                 horizMulti=False, vertMulti=True,
@@ -359,6 +360,9 @@ class Plot_OldSync(with_metaclass(MetaParams, object)):
         self.pinf.nrows = nrows
 
     def newaxis(self, obj, rowspan):
+      # only create a new axis if there’s actually data/volume to plot here
+        if obj is None:
+            return self.pinf.sharex  # reuse the last axis instead of making a new empty one
         ax = self.mpyplot.subplot2grid(
             (self.pinf.nrows, 1), (self.pinf.row, 0),
             rowspan=rowspan, sharex=self.pinf.sharex)
